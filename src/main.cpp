@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include <ArduinoJson.h>
-#include <PubSubClient.h>
+// #include <ArduinoJson.h>
+// #include <PubSubClient.h>
 #include <SPIFFS.h>
 // #include <WiFi.h>
 // #include <esp_camera.h>
@@ -8,6 +8,7 @@
 #include "Mybase64.h"
 #include "wifiop.h"
 #include "cameraop.h"
+#include "mqttop.h"
 
 // #include "soc/soc.h"
 // #include "soc/rtc_cntl_reg.h"
@@ -39,11 +40,7 @@ constexpr int ledOnBoard = 33;
 
 ///// End of Configurations /////
 
-WiFiClient espClient;
-PubSubClient g_pub_sub_client(espClient);
 
-// String msg;
-// int timeCount = 0;
 
 /**
  * @description: process the JSON config file
@@ -87,74 +84,6 @@ bool loadConfig() {
   return true;
 }
 
-/**
- * @description: return a string of mqtt state number
- * @param int state: mqtt state number
- * @return String: mqtt state string
- */
-String mqttState2Str(int state) {
-  switch (state) {
-    case -4:
-      return "MQTT_CONNECTION_TIMEOUT";
-    case -3:
-      return "MQTT_CONNECTION_LOST";
-    case -2:
-      return "MQTT_CONNECT_FAILED";
-    case -1:
-      return "MQTT_DISCONNECTED";
-    case 0:
-      return "MQTT_CONNECTED";
-    case 1:
-      return "MQTT_CONNECT_BAD_PROTOCOL";
-    case 2:
-      return "MQTT_CONNECT_BAD_CLIENT_ID";
-    case 3:
-      return "MQTT_CONNECT_UNAVAILABLE";
-    case 4:
-      return "MQTT_CONNECT_BAD_CREDENTIALS";
-    case 5:
-      return "MQTT_CONNECT_UNAUTHORIZED";
-    default:
-      return "MQTT_UNKNOWN_STATE";
-  }
-}
-
-/**
- * @description: (re)connect to MQTT server
- * @param none
- * @return none
- */
-void reconnect() {
-  // Loop until we're reconnected
-  while (!g_pub_sub_client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Create a random client ID
-    String clientId = "testClient";
-    clientId += String(random(0xffff), HEX);
-    // Attempt to connect
-    if (g_pub_sub_client.connect(clientId.c_str())) {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      g_pub_sub_client.publish("outTopic", "hello world");
-      // ... and resubscribe
-      g_pub_sub_client.subscribe("inTopic");
-    } else {
-      Serial.printf("failed, rc=%d, %s\n", g_pub_sub_client.state(),
-                    mqttState2Str(g_pub_sub_client.state()).c_str());
-      Serial.println("try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-
-
-
-
-
-void setupMqtt(const char* server, int port) {
-  g_pub_sub_client.setServer(server, port);
-}
 
 /// TODO: fill the description
 /**
@@ -206,7 +135,7 @@ void setup() {
 
   if (loadConfig()) {
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
-    setupMqtt(mqtt_server.c_str(), mqtt_port);
+    mqttSetup(mqtt_server.c_str(), mqtt_port);
     setupCamera();
     // setup done, turn on the led
     digitalWrite(ledOnBoard, LOW);
@@ -219,32 +148,28 @@ void setup() {
  * @function: Main loop
  */
 void loop() {
-  reconnect();
+  mqttReconnect();
   camera_fb_t* frame_buffer = esp_camera_fb_get();
 
   if (frame_buffer) {
     Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n",
                   frame_buffer->width, frame_buffer->height, frame_buffer->buf,
                   frame_buffer->len);
-    char data[4104];
-    String encoded;
-    //      g_pub_sub_client.beginPublish("spottest/", fb->len, true);
     char* input = (char*)frame_buffer->buf;
     char output[base64_enc_len(3)];
     String imageFile = "data:image/jpeg;base64,";
+    
     for (int i = 0; i < frame_buffer->len; i++) {
       base64_encode(output, (input++), 3);
       if (i % 3 == 0) imageFile += urlencode(String(output));
     }
     // Serial.println(imageFile);
     esp_camera_fb_return(frame_buffer);
-    g_pub_sub_client.beginPublish("spottest/", imageFile.length(), false);
-    g_pub_sub_client.print(imageFile.c_str());
-    g_pub_sub_client.endPublish();
+    
+    mqttPublish(imageFile);
 
-    // g_pub_sub_client.publish("spottest/", "1");
-    // timeCount = 0;
   }
+
   delay(20000);  // [ms]
   Serial.println("Get it.");
 }
