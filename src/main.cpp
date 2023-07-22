@@ -1,7 +1,7 @@
 #include <Arduino.h>
 // #include <ArduinoJson.h>
 // #include <PubSubClient.h>
-#include <SPIFFS.h>
+// #include <SPIFFS.h>
 // #include <WiFi.h>
 // #include <esp_camera.h>
 
@@ -9,6 +9,7 @@
 #include "wifiop.h"
 #include "cameraop.h"
 #include "mqttop.h"
+#include "fileop.h"
 
 // #include "soc/soc.h"
 // #include "soc/rtc_cntl_reg.h"
@@ -19,6 +20,7 @@ String wifi_ssid;
 String wifi_password;
 String mqtt_server;
 int mqtt_port;
+String config_file = "/netconfig.json";
 
 //^^^ Define by netconfig.json which locate in data folder
 /**
@@ -42,47 +44,6 @@ constexpr int ledOnBoard = 33;
 
 
 
-/**
- * @description: process the JSON config file
- * @param none
- * @return bool: true if config file is loaded successfully
- */
-bool loadConfig() {
-  // Read the configuration file and parse the JSON
-  // Make sure you have the "config.json" file uploaded to your Arduino board's
-  // filesystem
-  StaticJsonDocument<200> doc;
-
-  if (!SPIFFS.begin(true)) {
-    Serial.println("An Error has occurred while mounting SPIFFS");
-    return false;
-  }
-
-  File configFile = SPIFFS.open("/netconfig.json", "r");
-
-  if (!configFile) {
-    Serial.println("Config file not found");
-    return false;
-  }
-
-  DeserializationError error = deserializeJson(doc, configFile);
-
-  configFile.close();
-
-  if (error) {
-    Serial.print("Failed to parse config file ");
-    Serial.println(error.c_str());
-    return false;
-  }
-  // Copy values to the global variables
-  wifi_ssid = doc["wifi"]["ssid"].as<String>();
-  wifi_password = doc["wifi"]["password"].as<String>();
-  mqtt_server = doc["mqtt"]["address"].as<String>();
-  mqtt_port = doc["mqtt"]["port"].as<int>();
-
-  Serial.println("Config loaded successfully");
-  return true;
-}
 
 
 /// TODO: fill the description
@@ -133,7 +94,7 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Start");
 
-  if (loadConfig()) {
+  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server, mqtt_port)) {
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
     mqttSetup(mqtt_server.c_str(), mqtt_port);
     setupCamera();
