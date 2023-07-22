@@ -60,7 +60,7 @@ PubSubClient g_pub_sub_client(espClient);
 // int timeCount = 0;
 
 /**
- * @function: process the JSON config file
+ * @description: process the JSON config file
  * @param none
  * @return bool: true if config file is loaded successfully
  */
@@ -87,16 +87,10 @@ bool loadConfig() {
   configFile.close();
 
   if (error) {
-    Serial.println("Failed to parse config file");
+    Serial.print("Failed to parse config file ");
+    Serial.println(error.c_str());
     return false;
   }
-
-  // Extract WiFi and MQTT configuration values
-  // const char* ssid = doc["wifi"]["ssid"].as<const char*>();
-  // const char* password = doc["wifi"]["password"].as<const char*>();
-  // const char* server = doc["mqtt"]["server"].as<const char*>();
-  // int port = doc["mqtt"]["port"].as<int>();
-
   // Copy values to the global variables
   wifi_ssid = doc["wifi"]["ssid"].as<String>();
   wifi_password = doc["wifi"]["password"].as<String>();
@@ -105,6 +99,38 @@ bool loadConfig() {
 
   Serial.println("Config loaded successfully");
   return true;
+}
+
+/**
+ * @description: return a string of mqtt state number
+ * @param int state: mqtt state number
+ * @return String: mqtt state string
+ */
+String mqttState2Str(int state) {
+  switch (state) {
+    case -4:
+      return "MQTT_CONNECTION_TIMEOUT";
+    case -3:
+      return "MQTT_CONNECTION_LOST";
+    case -2:
+      return "MQTT_CONNECT_FAILED";
+    case -1:
+      return "MQTT_DISCONNECTED";
+    case 0:
+      return "MQTT_CONNECTED";
+    case 1:
+      return "MQTT_CONNECT_BAD_PROTOCOL";
+    case 2:
+      return "MQTT_CONNECT_BAD_CLIENT_ID";
+    case 3:
+      return "MQTT_CONNECT_UNAVAILABLE";
+    case 4:
+      return "MQTT_CONNECT_BAD_CREDENTIALS";
+    case 5:
+      return "MQTT_CONNECT_UNAUTHORIZED";
+    default:
+      return "MQTT_UNKNOWN_STATE";
+  }
 }
 
 /**
@@ -127,9 +153,9 @@ void reconnect() {
       // ... and resubscribe
       g_pub_sub_client.subscribe("inTopic");
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(g_pub_sub_client.state());
-      Serial.println(" try again in 5 seconds");
+      Serial.printf("failed, rc=%d, %s\n", g_pub_sub_client.state(),
+                    mqttState2Str(g_pub_sub_client.state()).c_str());
+      Serial.println("try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -137,7 +163,7 @@ void reconnect() {
 }
 
 /**
- * @function: setup and connect to WiFi
+ * @description: setup and connect to WiFi
  * @param const char* ssid: WiFi SSID
  * @param const char* password: WiFi password
  * @return none
@@ -165,7 +191,7 @@ void setupWifi(const char* ssid, const char* password) {
 }
 
 /**
- * @function: setup and initialize the camera
+ * @description: setup and initialize the camera
  * @param none
  * @return none
  */
@@ -209,6 +235,12 @@ void setupMqtt(const char* server, int port) {
   g_pub_sub_client.setServer(server, port);
 }
 
+/// TODO: fill the description
+/**
+ * @description:
+ * @param String str: string to be encoded
+ * @return String: encoded string
+ */
 String urlencode(String str) {
   String encodedString = "";
   char c;
@@ -252,7 +284,6 @@ void setup() {
   Serial.println("Start");
 
   if (loadConfig()) {
-    Serial.println(mqtt_port);
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
     setupMqtt(mqtt_server.c_str(), mqtt_port);
     setupCamera();
