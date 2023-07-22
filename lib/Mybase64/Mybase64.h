@@ -77,4 +77,12 @@ int base64_enc_len(int inputLen);
  */
 int base64_dec_len(char *input, int inputLen);
 
+/// TODO: fill the description
+/**
+ * @description:
+ * @param String str: string to be encoded
+ * @return String: encoded string
+ */
+String urlencode(String str);
+
 #endif // _BASE64_H
