@@ -1,3 +1,4 @@
+// You need to rename the filename to netconfig.json to make this config work
 {
   "wifi": {
     "ssid": "",
