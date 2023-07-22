@@ -3,10 +3,11 @@
 #include <PubSubClient.h>
 #include <SPIFFS.h>
 // #include <WiFi.h>
-#include <esp_camera.h>
+// #include <esp_camera.h>
 
 #include "Mybase64.h"
 #include "wifiop.h"
+#include "cameraop.h"
 
 // #include "soc/soc.h"
 // #include "soc/rtc_cntl_reg.h"
@@ -34,22 +35,6 @@ int mqtt_port;
 */
 
 // Pins Declaration
-constexpr int kCameraPin_PWDN = 32;
-constexpr int kCameraPin_RESET = -1;  // NC
-constexpr int kCameraPin_XCLK = 0;
-constexpr int kCameraPin_SIOD = 26;
-constexpr int kCameraPin_SIOC = 27;
-constexpr int kCameraPin_Y9 = 35;
-constexpr int kCameraPin_Y8 = 34;
-constexpr int kCameraPin_Y7 = 39;
-constexpr int kCameraPin_Y6 = 36;
-constexpr int kCameraPin_Y5 = 21;
-constexpr int kCameraPin_Y4 = 19;
-constexpr int kCameraPin_Y3 = 18;
-constexpr int kCameraPin_Y2 = 5;
-constexpr int kCameraPin_VSYNC = 25;
-constexpr int kCameraPin_HREF = 23;
-constexpr int kCameraPin_PCLK = 22;
 constexpr int ledOnBoard = 33;
 
 ///// End of Configurations /////
@@ -165,46 +150,7 @@ void reconnect() {
 
 
 
-/**
- * @description: setup and initialize the camera
- * @param none
- * @return none
- */
-void setupCamera() {
-  const camera_config_t config = {
-      .pin_pwdn = kCameraPin_PWDN,
-      .pin_reset = kCameraPin_RESET,
-      .pin_xclk = kCameraPin_XCLK,
-      .pin_sscb_sda = kCameraPin_SIOD,
-      .pin_sscb_scl = kCameraPin_SIOC,
-      .pin_d7 = kCameraPin_Y9,
-      .pin_d6 = kCameraPin_Y8,
-      .pin_d5 = kCameraPin_Y7,
-      .pin_d4 = kCameraPin_Y6,
-      .pin_d3 = kCameraPin_Y5,
-      .pin_d2 = kCameraPin_Y4,
-      .pin_d1 = kCameraPin_Y3,
-      .pin_d0 = kCameraPin_Y2,
-      .pin_vsync = kCameraPin_VSYNC,
-      .pin_href = kCameraPin_HREF,
-      .pin_pclk = kCameraPin_PCLK,
-      .xclk_freq_hz = 20000000,
-      .ledc_timer = LEDC_TIMER_0,
-      .ledc_channel = LEDC_CHANNEL_0,
-      .pixel_format = PIXFORMAT_JPEG,
-      .frame_size = FRAMESIZE_XGA,
-      .jpeg_quality = 10,
-      .fb_count = 1,
-  };
 
-  esp_err_t err = esp_camera_init(&config);
-  ESP_ERROR_CHECK(err);
-
-  Serial.printf("esp_camera_init:%s 0x%x\n", esp_err_to_name(err), err);
-
-  // sensor_t *s = esp_camera_sensor_get();
-  // s->set_framesize(s, FRAMESIZE_QVGA);
-}
 
 void setupMqtt(const char* server, int port) {
   g_pub_sub_client.setServer(server, port);
@@ -290,7 +236,7 @@ void loop() {
       base64_encode(output, (input++), 3);
       if (i % 3 == 0) imageFile += urlencode(String(output));
     }
-    Serial.println(imageFile);
+    // Serial.println(imageFile);
     esp_camera_fb_return(frame_buffer);
     g_pub_sub_client.beginPublish("spottest/", imageFile.length(), false);
     g_pub_sub_client.print(imageFile.c_str());
