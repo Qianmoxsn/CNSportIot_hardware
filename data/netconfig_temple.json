@@ -1,5 +1,9 @@
-// You need to rename the filename to netconfig.json to make this config work
 {
+  "comment": {
+    "1":"You need to copy and rename the file to netconfig.json to make this config work",
+    "2":"You can to remove the comments in the copyed file"
+  },
+
   "wifi": {
     "ssid": "",
     "password": ""
