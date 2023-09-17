@@ -25,3 +25,17 @@ void setupWifi(const char* ssid, const char* password) {
   Serial.print("WiFi connected with IP: ");
   Serial.println(WiFi.localIP());
 }
+
+void scanfWifi() {
+  int numberOfNetworks = WiFi.scanNetworks();
+  Serial.print("Networks found:");
+  Serial.println(numberOfNetworks);
+  for (int i = 0; i < numberOfNetworks; i++) {
+    Serial.print("Net: ");
+    Serial.print(WiFi.SSID(i));
+    Serial.print("   Signal: ");
+    Serial.print(WiFi.RSSI(i));
+    Serial.println(" dBm");
+  }
+  Serial.println("-----------------------");
+}

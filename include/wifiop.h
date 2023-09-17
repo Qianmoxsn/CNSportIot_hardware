@@ -4,3 +4,4 @@
 #include <WiFi.h>
 
 void setupWifi(const char*, const char*);
+void scanfWifi();

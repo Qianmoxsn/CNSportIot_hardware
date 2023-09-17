@@ -29,6 +29,8 @@ void setup() {
 
   if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,
                  mqtt_port)) {
+    
+    scanfWifi();
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
     mqttSetup(mqtt_server.c_str(), mqtt_port);
     setupCamera();
