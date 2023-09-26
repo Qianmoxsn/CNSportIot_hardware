@@ -1,68 +1,80 @@
-#include <Arduino.h>
+#include <WebServer.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include "CRtspSession.h"
+#include "OV2640.h"
+#include "OV2640Streamer.h"
+#include "SimStreamer.h"
 
-#include "Mybase64.h"
-#include "cameraop.h"
-#include "fileop.h"
-#include "mqttop.h"
-#include "wifiop.h"
 
-///// Configurations /////
-// Instantiate the netconfig.json from the template and store it in data folder.
-String config_file = "/netconfig.json";
+OV2640 cam;
+WiFiServer rtspServer(8554);
+CStreamer *streamer;
+CRtspSession *session;
+WiFiClient client;  // FIXME, support multiple clients
 
-// WiFi MQTT Global Variables
-String wifi_ssid;
-String wifi_password;
-String mqtt_server;
-int mqtt_port;
-
-// Pins Declaration
-const int ledOnBoard = 33;
-
-/// @function: Entry point
+#include "wifikeys.h"
 
 void setup() {
-  pinMode(ledOnBoard, OUTPUT);
-  digitalWrite(ledOnBoard, HIGH);
-  Serial.begin(9600);
-  Serial.println("Start");
-
-  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,
-                 mqtt_port)) {
-    setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
-    mqttSetup(mqtt_server.c_str(), mqtt_port);
-    setupCamera();
-    // setup done, turn on the led
-    digitalWrite(ledOnBoard, LOW);
-  } else {
-    abort();
+  Serial.begin(115200);
+  while (!Serial) {
   }
+  cam.init(esp32cam_aithinker_config);
+
+  IPAddress ip;
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(F("."));
+  }
+  ip = WiFi.localIP();
+  Serial.println(F("WiFi connected"));
+  Serial.println("");
+  Serial.println(ip);
+
+  rtspServer.begin();
 }
 
-/// @function: Main loop
-
 void loop() {
-  mqttReconnect();
-  camera_fb_t* frame_buffer = esp_camera_fb_get();
+  uint32_t msecPerFrame = 100;
+  static uint32_t lastimage = millis();
 
-  if (frame_buffer) {
-    Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n",
-                  frame_buffer->width, frame_buffer->height, frame_buffer->buf,
-                  frame_buffer->len);
-    char* input = (char*)frame_buffer->buf;
-    char output[base64_enc_len(3)];
-    String imageFile = "data:image/jpeg;base64,";
+  // If we have an active client connection, just service that until gone
+  // (FIXME - support multiple simultaneous clients)
+  if (session) {
+    session->handleRequests(0);  // we don't use a timeout here,
+    // instead we send only if we have new enough frames
 
-    for (int i = 0; i < frame_buffer->len; i++) {
-      base64_encode(output, (input++), 3);
-      if (i % 3 == 0) imageFile += urlencode(String(output));
+    uint32_t now = millis();
+    if (now > lastimage + msecPerFrame ||
+        now < lastimage) {  // handle clock rollover
+      session->broadcastCurrentFrame(now);
+      lastimage = now;
+
+      // check if we are overrunning our max frame rate
+      now = millis();
+      if (now > lastimage + msecPerFrame)
+        printf("warning exceeding max frame rate of %d ms\n", now - lastimage);
     }
-    // Serial.println(imageFile);
-    esp_camera_fb_return(frame_buffer);
 
-    mqttPublish(imageFile);
+    if (session->m_stopped) {
+      delete session;
+      delete streamer;
+      session = NULL;
+      streamer = NULL;
+    }
+  } else {
+    client = rtspServer.accept();
+
+    if (client) {
+      // streamer = new SimStreamer(&client, true);             // our streamer
+      // for UDP/TCP based RTP transport
+      // our streamer for UDP/TCP based RTP transport
+      streamer = new OV2640Streamer(&client, cam);
+    }
+      // our threads RTSP session and state
+    session = new CRtspSession(&client, streamer);
   }
-
-  delay(20000);  // [ms]
-  Serial.println("Get it.");
 }
