@@ -22,6 +22,7 @@ void setup() {
   cam.init(esp32cam_aithinker_config);
 
   IPAddress ip;
+  // IPv6Address ip6;
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -30,9 +31,11 @@ void setup() {
     Serial.print(F("."));
   }
   ip = WiFi.localIP();
+  // ip6 = WiFi.localIPv6();
   Serial.println(F("WiFi connected"));
   Serial.println("");
   Serial.println(ip);
+  // Serial.println(ip6);
 
   rtspServer.begin();
 }
