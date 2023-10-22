@@ -33,7 +33,7 @@ void setupCamera() {
   };
 
   esp_err_t err = esp_camera_init(&config);
-  ESP_ERROR_CHECK(err);
+  //ESP_ERROR_CHECK(err);
 
   Serial.printf("esp_camera_init:%s 0x%x\n", esp_err_to_name(err), err);
 }
