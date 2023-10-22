@@ -5,46 +5,44 @@
 #include "fileop.h"
 #include "mqttop.h"
 #include "wifiop.h"
+#include "easylight.h"
 
 ///// Configurations /////
 // Instantiate the netconfig.json from the template and store it in data folder.
-String config_file = "/netconfig.json";
+// String config_file = "/netconfig.json";
 
 // WiFi MQTT Global Variables
-String wifi_ssid;
-String wifi_password;
-String mqtt_server;
-int mqtt_port;
+// String wifi_ssid;
+// String wifi_password;
+// String mqtt_server;
+// int mqtt_port;
 
-// Pins Declaration
-const int ledOnBoard = 33;
 
 /// @function: Entry point
 
 void setup() {
-  pinMode(ledOnBoard, OUTPUT);
-  digitalWrite(ledOnBoard, HIGH);
+  
   Serial.begin(9600);
   Serial.println("Start");
 
-  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,
-                 mqtt_port)) {
+  // if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,
+  //                mqtt_port)) {
     
     scanfWifi();
-    setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
-    mqttSetup(mqtt_server.c_str(), mqtt_port);
+    // setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
+    // mqttSetup(mqtt_server.c_str(), mqtt_port);
     setupCamera();
     // setup done, turn on the led
-    digitalWrite(ledOnBoard, LOW);
-  } else {
-    abort();
-  }
+    turnOn(1,3);
+  // } else {
+  //   abort();
+  // }
 }
 
 /// @function: Main loop
 
 void loop() {
-  mqttReconnect();
+  // mqttReconnect();
   camera_fb_t* frame_buffer = esp_camera_fb_get();
 
   if (frame_buffer) {
@@ -62,7 +60,7 @@ void loop() {
     // Serial.println(imageFile);
     esp_camera_fb_return(frame_buffer);
 
-    mqttPublish(imageFile);
+    // mqttPublish(imageFile);
   }
 
   delay(20000);  // [ms]
