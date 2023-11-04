@@ -79,8 +79,8 @@ void mqttReconnect() {
  * @param String imageFile: image file in base64 format
  * @return none
 */
-void mqttPublish(String imageFile) {
-  mqtt_client.beginPublish("spottest/", imageFile.length(), false);
+void mqttPublish(String topic, String imageFile) {
+  mqtt_client.beginPublish(topic.c_str(), imageFile.length(), false);
   mqtt_client.print(imageFile.c_str());
   mqtt_client.endPublish();
 }

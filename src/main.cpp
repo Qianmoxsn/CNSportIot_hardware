@@ -14,6 +14,7 @@ String config_file = "/netconfig.json";
 
 // WiFi MQTT Global Variables
 String mqtt_server;
+String mqtt_topic;
 int mqtt_port;
 
 // Pins Declaration
@@ -25,14 +26,21 @@ HardwareSerial myserial(1);  // use UART1
 void setup() {
   pinMode(ledOnBoard, OUTPUT);
   digitalWrite(ledOnBoard, HIGH);
-  Serial.begin(115200);
-  // RX TX
-  myserial.begin(115200, SERIAL_8N1, 14, 15);
+  Serial.begin(9600);
+  Serial.println("Start");
 
-  setupCamera();
-  // setup done, turn on the led
-  digitalWrite(ledOnBoard, LOW);
-  delay(10000);
+  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,mqtt_topic,
+                 mqtt_port)) {
+    
+    scanfWifi();
+    setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
+    mqttSetup(mqtt_server.c_str(), mqtt_port);
+    setupCamera();
+    // setup done, turn on the led
+    digitalWrite(ledOnBoard, LOW);
+  } else {
+    abort();
+  }
 }
 
 /// @function: Main loop
@@ -52,36 +60,10 @@ void loop() {
       if (i % 3 == 0) imageFile += urlencode(String(output));
     }
     esp_camera_fb_return(frame_buffer);
-    int segmentSize = 1024;
-    int stringLength = imageFile.length();
-    for (int i = 0; i < stringLength; i += segmentSize) {
-      String segment;
-      if (i + segmentSize < stringLength) {
-        segment = imageFile.substring(i, i + segmentSize);
-      } else {
-        segment = imageFile.substring(i);
-      }
 
-      // 发送串口消息说明是第几段和片段长度
-      int segmentNumber = i / segmentSize + 1;
-      int segmentLength = segment.length();
-      myserial.print("Segment ");
-      myserial.print(segmentNumber);
-      myserial.print(" (Length: ");
-      myserial.print(segmentLength);
-      myserial.print("):");
-      myserial.print("\r\n");
-
-      Serial.print(segmentNumber);
-      Serial.print(segmentLength);
-      Serial.print("\r\n");
-
-      delay(100);
-      myserial.print(segment);
-      myserial.print("\r\n");
-      delay(100);
-    }
-    //  myserial.print("\r\n");
+    mqttPublish(mqtt_topic,imageFile);
   }
-  delay(120000);  // [ms]
+
+  delay(20000);  // [ms]
+  Serial.println("Get it.");
 }
