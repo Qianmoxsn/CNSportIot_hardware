@@ -14,6 +14,7 @@ String config_file = "/netconfig.json";
 String wifi_ssid;
 String wifi_password;
 String mqtt_server;
+String mqtt_topic;
 int mqtt_port;
 
 // Pins Declaration
@@ -27,7 +28,7 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Start");
 
-  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,
+  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,mqtt_topic,
                  mqtt_port)) {
     
     scanfWifi();
@@ -62,7 +63,7 @@ void loop() {
     // Serial.println(imageFile);
     esp_camera_fb_return(frame_buffer);
 
-    mqttPublish(imageFile);
+    mqttPublish(mqtt_topic,imageFile);
   }
 
   delay(20000);  // [ms]
