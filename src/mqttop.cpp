@@ -85,28 +85,40 @@ void mqttReconnect() {
  */
 int mqttPublish(String topic, String imageFile) {
   int base64_len = imageFile.length();
-  int begin_val = mqtt_client.beginPublish(topic.c_str(), base64_len, true);
 
-  if (begin_val == 0) {
+  // beginPublish return 0 --> failed
+  int begin_flag = mqtt_client.beginPublish(topic.c_str(), base64_len, true);
+  if (begin_flag == 0) {
     return 1;
   }
-  int pack_size = 256;
-  int pack_cnt = base64_len / pack_size;
 
+  // Large payload, split into 256 bytes packages
+  int pack_size = 256;
+  mqtt_client.setBufferSize(pack_size);
+  int pack_cnt = base64_len / pack_size;
+  // Sending packages
   for (int i = 0; i < (pack_cnt - 1); i++) {
     mqtt_client.print(imageFile.substring(i * pack_size, (i + 1) * pack_size).c_str());
   }
   mqtt_client.print(imageFile.substring((pack_cnt - 1) * pack_size).c_str());
-  Serial.printf("%dB in %d packs, All away!\n", base64_len, pack_cnt);
-  int end_val = mqtt_client.endPublish();
 
-  if (end_val == 0) {
+  Serial.printf("%dB in %d packs, All away!\n", base64_len, pack_cnt);
+
+  // endPublish return 0 --> failed
+  int end_flag = mqtt_client.endPublish();
+  if (end_flag == 0) {
     return 2;
   }
 
   return 0;
 }
 
+/**
+ * @description: loop for MQTT client
+ * @param none
+ * @return bool: true if loop() success
+ * @comment: 神奇函数，具有一定的指示功能
+ */
 bool mqttLoop() {
   return mqtt_client.loop();
 }
