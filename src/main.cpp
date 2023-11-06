@@ -28,16 +28,16 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Start");
 
-  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,mqtt_topic,
-                 mqtt_port)) {
-    
+  if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server, mqtt_topic,
+    mqtt_port)) {
     scanfWifi();
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
     mqttSetup(mqtt_server.c_str(), mqtt_port);
     setupCamera();
     // setup done, turn on the led
     digitalWrite(ledOnBoard, LOW);
-  } else {
+  }
+  else {
     abort();
   }
 }
@@ -46,12 +46,12 @@ void setup() {
 
 void loop() {
   mqttReconnect();
+  
   camera_fb_t* frame_buffer = esp_camera_fb_get();
 
   if (frame_buffer) {
     Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n",
-                  frame_buffer->width, frame_buffer->height, frame_buffer->buf,
-                  frame_buffer->len);
+      frame_buffer->width, frame_buffer->height, frame_buffer->buf,frame_buffer->len);
     char* input = (char*)frame_buffer->buf;
     char output[base64_enc_len(3)];
     String imageFile = "data:image/jpeg;base64,";
@@ -60,12 +60,22 @@ void loop() {
       base64_encode(output, (input++), 3);
       if (i % 3 == 0) imageFile += urlencode(String(output));
     }
-    // Serial.println(imageFile);
+    // 释放buffer
     esp_camera_fb_return(frame_buffer);
 
-    mqttPublish(mqtt_topic,imageFile);
+    int mqtt_err = mqttPublish(mqtt_topic, imageFile);
+    if (mqtt_err == 1) {
+      Serial.println("MQTT_BEGIN_FAILED");
+    }
+    else if (mqtt_err == 2) {
+      Serial.println("MQTT_END_FAILED");
+    }
+    else {
+      Serial.println("MQTT_PUBLISH_SUCCESS");
+    }
   }
-
-  delay(20000);  // [ms]
-  Serial.println("Get it.");
+  Serial.print("mqttLoop: ");
+  Serial.println(mqttLoop());
+  delay(30000);  // [ms]
+  // Serial.println("Get it.");
 }

@@ -11,4 +11,6 @@ String mqttStatetoName(int);
 
 void mqttReconnect();
 
-void mqttPublish(String,String);
+int mqttPublish(String, String);
+
+bool mqttLoop();

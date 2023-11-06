@@ -27,7 +27,7 @@ void setupCamera() {
       .ledc_timer = LEDC_TIMER_0,
       .ledc_channel = LEDC_CHANNEL_0,
       .pixel_format = PIXFORMAT_JPEG,
-      .frame_size = FRAMESIZE_XGA,
+      .frame_size = FRAMESIZE_VGA,
       .jpeg_quality = 10,
       .fb_count = 1,
   };
@@ -37,3 +37,12 @@ void setupCamera() {
 
   Serial.printf("esp_camera_init:%s 0x%x\n", esp_err_to_name(err), err);
 }
+/**
+FRAMESIZE_UXGA (1600 x 1200)
+FRAMESIZE_QVGA (320 x 240)
+FRAMESIZE_CIF (352 x 288)
+FRAMESIZE_VGA (640 x 480)
+FRAMESIZE_SVGA (800 x 600)
+FRAMESIZE_XGA (1024 x 768)
+FRAMESIZE_SXGA (1280 x 1024)
+*/
