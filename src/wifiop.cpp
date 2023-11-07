@@ -39,3 +39,15 @@ void scanfWifi() {
   }
   Serial.println("-----------------------");
 }
+
+/**
+ * @description: (re)connect to WiFi
+ * @param none
+ * @return none
+ */
+void reconWifi(const char* ssid, const char* password) {
+  if (WiFi.status() != WL_CONNECTED) {
+    setupWifi(ssid, password);
+    Serial.println("WiFi Reconnected");
+  }
+}

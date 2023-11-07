@@ -58,7 +58,8 @@ void mqttReconnect() {
   Serial.print("Attempting MQTT connection...");
   // Create a random client ID
   String clientId = "testClient-";
-  clientId += String(random(0xffff));
+  String rand = String(random(0xffff), HEX);
+  clientId += rand;
   // Attempt to connect
   if (mqtt_client.connect(clientId.c_str())) {
     Serial.println("connected");
@@ -74,7 +75,17 @@ void mqttReconnect() {
     delay(5000);
   }
   // }
-  Serial.printf("<=%d=> MQTT_CONNECTED ::");
+  // Get RTC time to String MM:SS
+  struct tm info;
+  String time_str = "ST:AR.Tx";
+  if (!getLocalTime(&info)) {
+    time_str = "FA:IL.xx";
+  }
+  else {
+    time_str = String(info.tm_hour) + ":" +String(info.tm_min) + "." + String(info.tm_sec);
+  }
+
+  Serial.printf("<=%s,%s=> MQTT_CONNECTED ::", rand, time_str);
   Serial.println(mqttStatetoName(mqtt_client.state()).c_str());
 }
 

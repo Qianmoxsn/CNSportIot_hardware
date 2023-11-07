@@ -5,3 +5,4 @@
 
 void setupWifi(const char*, const char*);
 void scanfWifi();
+void reconWifi(const char*, const char*);
