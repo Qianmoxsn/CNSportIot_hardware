@@ -24,6 +24,11 @@ void setupWifi(const char* ssid, const char* password) {
   Serial.println("");
   Serial.print("WiFi connected with IP: ");
   Serial.println(WiFi.localIP());
+
+  //获取mac
+  uint8_t macAddr[6]; 
+  WiFi.macAddress(macAddr); 
+  printf("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n", macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5]);
 }
 
 void scanfWifi() {
