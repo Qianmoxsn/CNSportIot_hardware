@@ -30,6 +30,11 @@ void setupWifi(const char* ssid, const char* password) {
   printf("MAC: %02x:%02x:%02x:%02x:%02x:%02x\n", macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5]);
 }
 
+/**
+ * @description: scan WiFi
+ * @param none
+ * @return none
+*/
 void scanfWifi() {
   int numberOfNetworks = WiFi.scanNetworks();
   Serial.print("Networks found:");
@@ -42,4 +47,17 @@ void scanfWifi() {
     Serial.println(" dBm");
   }
   Serial.println("-----------------------");
+}
+
+/**
+ * @description: (re)connect to WiFi
+ * @param const char* ssid: WiFi SSID
+ * @param const char* password: WiFi password
+ * @return none
+ */
+void reconWifi(const char* ssid, const char* password) {
+  if (WiFi.status() != WL_CONNECTED) {
+    setupWifi(ssid, password);
+    Serial.println("WiFi Reconnected");
+  }
 }

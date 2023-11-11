@@ -50,6 +50,7 @@ void setup() {
 /// @function: Main loop
 
 void loop() {
+  reconWifi(wifi_ssid.c_str(), wifi_password.c_str());
   camera_fb_t* frame_buffer = esp_camera_fb_get();
 
   if (frame_buffer) {
