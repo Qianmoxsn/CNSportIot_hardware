@@ -21,11 +21,13 @@
 /// @function: Entry point
 
 void setup() {
+  // Time for open COM
+  delay(2000);
   setupLights();
   
   Serial.begin(9600);
   Serial.println("Start");
-  turnOn(5);
+  turnOn(1);
   
   // if (loadConfig(config_file, wifi_ssid, wifi_password, mqtt_server,
   //                mqtt_port)) {
@@ -35,7 +37,7 @@ void setup() {
     // mqttSetup(mqtt_server.c_str(), mqtt_port);
     setupCamera();
     // setup done, turn on the led
-    turnOn(1,3);
+    turnOn(3);
   // } else {
   //   abort();
   // }
