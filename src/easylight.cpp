@@ -140,3 +140,30 @@ void turnOff(int ledx1, int ledx2, int ledx3, int ledx4) {
   turnOff(ledx3);
   turnOff(ledx4);
 }
+
+void setupcamLights() {
+  for (int i = 0; i < 14; i++) {
+    pinMode(cam_pin_list[i], OUTPUT);
+  }
+}
+
+void flowcamlights() {
+  for (int i = 0; i < 14; i++) {
+    digitalWrite(cam_pin_list[i], LED_ON);
+    delay(100);
+    digitalWrite(cam_pin_list[i], LED_OFF);
+    delay(100);
+  }
+}
+
+void turnoncamlights() {
+  for (int i = 0; i < 14; i++) {
+    digitalWrite(cam_pin_list[i], LED_ON);
+  }
+}
+
+void turnoffcamlights() {
+  for (int i = 0; i < 14; i++) {
+    digitalWrite(cam_pin_list[i], LED_OFF);
+  }
+}
