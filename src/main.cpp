@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-#include "Mybase64.h"
 #include "cameraop.h"
 #include "fileop.h"
 #include "wifiop.h"
