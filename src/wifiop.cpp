@@ -61,3 +61,17 @@ void reconWifi(const char* ssid, const char* password) {
     Serial.println("WiFi Reconnected");
   }
 }
+
+/**
+ * @description: sync time from NTP server
+ * @param none
+ * @return none
+*/
+void syncTime() {
+  configTime(28800, 0, "ntp.aliyun.com", "time1.cloud.tencent.com", "ntp.ntsc.ac.cn");
+  while (!time(nullptr)) {
+    delay(500);
+    Serial.println("Waiting for time sync...");
+  }
+  Serial.println("Time synced");
+}

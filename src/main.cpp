@@ -33,6 +33,8 @@ void setup() {
     // setup wifi
     scanfWifi();
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
+    // sync time
+    syncTime();
     // setup camera
     setupCamera();
     // setup SUCCESS, turn on led
@@ -51,14 +53,23 @@ void setup() {
 
 void loop() {
   reconWifi(wifi_ssid.c_str(), wifi_password.c_str());
+  
   camera_fb_t* frame_buffer = esp_camera_fb_get();
+  
+  struct tm info;
+  String time_str = "ST:AR.Tx";
+  while (!getLocalTime(&info)) {
+    time_str = "FA:IL.xx";
+  }
+  time_str = String(info.tm_hour) + ":" +String(info.tm_min) + "." + String(info.tm_sec);
+  
 
   if (frame_buffer) {
     Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", frame_buffer->width, frame_buffer->height, frame_buffer->buf, frame_buffer->len);
     unsigned char* file_header = (unsigned char*)frame_buffer->buf;
     // FTP upload
     //random name img_xxxxx.jpg
-    String name = "img_" + String(random(10000, 99999)) + ".jpg";
+    String name = "img_" + time_str + ".jpg";
     ftp.OpenConnection();
 
     ftp.InitFile("Type I");
