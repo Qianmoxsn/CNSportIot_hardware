@@ -23,11 +23,11 @@ void setupCamera() {
       .pin_vsync = kCameraPin_VSYNC,
       .pin_href = kCameraPin_HREF,
       .pin_pclk = kCameraPin_PCLK,
-      .xclk_freq_hz = 20000000,
+      .xclk_freq_hz = 24000000,
       .ledc_timer = LEDC_TIMER_0,
       .ledc_channel = LEDC_CHANNEL_0,
       .pixel_format = PIXFORMAT_JPEG,
-      .frame_size = FRAMESIZE_XGA,
+      .frame_size = FRAMESIZE_FHD,
       .jpeg_quality = 10,
       .fb_count = 1,
   };
