@@ -5,6 +5,7 @@
 #include "fileop.h"
 #include "wifiop.h"
 #include "easylight.h"
+#include "ftpop.h"
 
 ///// Configurations /////
 // Instantiate the netconfig.json from the template and store it in data folder.
@@ -17,7 +18,7 @@ String ftp_server;
 String ftp_user;
 String ftp_pswd;
 
-
+ESP32_FTPClient ftp ((char*)ftp_server.c_str(),(char*)ftp_user.c_str(),(char*)ftp_pswd.c_str(), 5000, 2);
 
 /// @function: Entry point
 
@@ -36,10 +37,12 @@ void setup() {
     // setup camera
     setupCamera();
     // setup ftp
-
+    ftp.OpenConnection();
 
     // setup SUCCESS, turn on led
     turnOn(3);
+    // Create the file new and write a string into it
+
   }
   else {
     // setup FAILED, turn on led
@@ -47,6 +50,7 @@ void setup() {
     delay(1000);
     abort();
   }
+
 }
 
 /// @function: Main loop
@@ -56,14 +60,11 @@ void loop() {
 
   if (frame_buffer) {
     Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n", frame_buffer->width, frame_buffer->height, frame_buffer->buf, frame_buffer->len);
-    char* input = (char*)frame_buffer->buf;
-    char output[base64_enc_len(3)];
-
-    String imageFile = "data:image/jpeg;base64,";
-    for (int i = 0; i < frame_buffer->len; i++) {
-      base64_encode(output, (input++), 3);
-      if (i % 3 == 0) imageFile += urlencode(String(output));
-    }
+    unsigned char* file_header = (unsigned char*)frame_buffer->buf;
+    ftp.InitFile("Type I");
+    ftp.NewFile("imag.jpg");
+    ftp.WriteData( file_header, frame_buffer->len);
+    ftp.CloseFile();
     // clear camera buffer
     esp_camera_fb_return(frame_buffer);
     // FTP upload
