@@ -1,15 +1,11 @@
 {
-  "comment": {
-    "1":"You need to copy and rename the file to netconfig.json to make this config work",
-    "2":"You can to remove the comments in the copyed file"
-  },
-
   "wifi": {
     "ssid": "",
     "password": ""
   },
-  "mqtt": {
-    "address": "43.143.147.55",
-    "port": 1883
+  "ftp": {
+    "server": "",
+    "username": "",
+    "password": ""
   }
 }
