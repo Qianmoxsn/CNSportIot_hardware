@@ -23,12 +23,16 @@ ESP32_FTPClient ftp((char*)ftp_server.c_str(), (char*)ftp_user.c_str(), (char*)f
 
 void setup() {
   // Time for open COM
-  delay(2000);
+  delay(4000);
   setupLights();
 
   Serial.begin(9600);
-  Serial.println("Start");
-
+  Serial.printf("\nInfo ====================\n");
+  Serial.printf("CPU freq: %d MHz\n", ESP.getCpuFreqMHz());
+  Serial.printf("RAM free size: %.2f M\n", ESP.getFreeHeap()/1024.0/1024.0);
+  Serial.printf("PSRAM free size: %.2f M\n", ESP.getFreePsram()/1024.0/1024.0);
+  Serial.printf("FLASH size: %.2f M\n", ESP.getFlashChipSize()/1024.0/1024.0);
+  Serial.println("=========================");
   if (loadConfig(config_file, wifi_ssid, wifi_password, ftp_server, ftp_user, ftp_pswd)) {
     // setup wifi
     scanfWifi();
