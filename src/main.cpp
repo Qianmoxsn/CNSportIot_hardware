@@ -1,10 +1,9 @@
 #include <Arduino.h>
 
-#include "Mybase64.h"
-#include "cameraop.h"
 #include "fileop.h"
 #include "mqttop.h"
 #include "wifiop.h"
+#include <WebSerial.h>
 
 ///// Configurations /////
 // Instantiate the netconfig.json from the template and store it in data folder.
@@ -20,11 +19,21 @@ int mqtt_port;
 // Pins Declaration
 const int ledOnBoard = 33;
 
+AsyncWebServer server(80);
 /// @function: Entry point
+
+// broadcast Serial message to WebSerial
+void broadcastMsg() {
+  String msg = Serial.readStringUntil('\n');
+  if (msg.length() > 0){
+    WebSerial.println(msg);
+  }
+}
 
 void setup() {
   pinMode(ledOnBoard, OUTPUT);
   digitalWrite(ledOnBoard, HIGH);
+
   Serial.begin(9600);
   Serial.println("Start");
 
@@ -38,9 +47,8 @@ void setup() {
       Serial.println("Waiting for time sync...");
     }
     Serial.println("Time synced");
-
-    mqttSetup(mqtt_server.c_str(), mqtt_port);
-    setupCamera();
+    WebSerial.begin(&server);
+    server.begin();
     // setup done, turn on the led
     digitalWrite(ledOnBoard, LOW);
   }
@@ -52,40 +60,5 @@ void setup() {
 /// @function: Main loop
 
 void loop() {
-  reconWifi(wifi_ssid.c_str(), wifi_password.c_str());
-  mqttReconnect();
-
-  camera_fb_t* frame_buffer = esp_camera_fb_get();
-
-  if (frame_buffer) {
-    Serial.printf("width: %d, height: %d, buf: 0x%x, len: %d\n",
-      frame_buffer->width, frame_buffer->height, frame_buffer->buf, frame_buffer->len);
-    char* input = (char*)frame_buffer->buf;
-    char output[base64_enc_len(3)];
-    String imageFile = "data:image/jpeg;base64,";
-
-    for (int i = 0; i < frame_buffer->len; i++) {
-      base64_encode(output, (input++), 3);
-      if (i % 3 == 0) imageFile += urlencode(String(output));
-    }
-    // 释放buffer
-    esp_camera_fb_return(frame_buffer);
-    Serial.printf("FreeHeap:%d ", ESP.getFreeHeap());
-    Serial.printf("FreePSR:%d \n", ESP.getFreePsram());
-
-    int mqtt_err = mqttPublish(mqtt_topic, imageFile);
-    if (mqtt_err == 1) {
-      Serial.println("MQTT_BEGIN_FAILED");
-    }
-    else if (mqtt_err == 2) {
-      Serial.println("MQTT_END_FAILED");
-    }
-    else {
-      Serial.println("MQTT_PUBLISH_SUCCESS");
-    }
-  }
-  Serial.print("mqttLoop: ");
-  Serial.println(mqttLoop());
-  delay(30000);  // [ms]
-  // Serial.println("Get it.");
+  broadcastMsg();
 }
