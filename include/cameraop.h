@@ -22,7 +22,7 @@ constexpr int espCamPin_HS = 7;
 constexpr int espCamPin_PCLK = 13;
 
 // Camera Configurations
-constexpr int espCamQuality = FRAMESIZE_UXGA;
+constexpr framesize_t espCamQuality = FRAMESIZE_UXGA;
 /*
     FRAMESIZE_96X96,    // 96x96
     FRAMESIZE_QQVGA,    // 160x120
