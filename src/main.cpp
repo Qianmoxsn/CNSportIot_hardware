@@ -66,6 +66,7 @@ void loop() {
     time_str = "FA:IL.xx";
   }
   time_str = String(info.tm_hour) + ":" +String(info.tm_min) + "." + String(info.tm_sec);
+  String unix_time_str = String(info.tm_yday);
   
 
   if (frame_buffer) {
@@ -73,13 +74,14 @@ void loop() {
     unsigned char* file_header = (unsigned char*)frame_buffer->buf;
     // FTP upload
     //random name img_xxxxx.jpg
-    String name = "img_" + time_str + ".jpg";
+    String name = "img_" + unix_time_str +'_'+ time_str + ".jpg";
     ftp.OpenConnection();
-
+    ftp.ChangeWorkDir("1/1/");
     ftp.InitFile("Type I");
     ftp.NewFile(name.c_str());
     ftp.WriteData(file_header, frame_buffer->len);
     ftp.CloseFile();
+    ftp.CloseConnection();
 
     // clear camera buffer
     esp_camera_fb_return(frame_buffer);
@@ -88,5 +90,5 @@ void loop() {
 
   }
 
-  delay(20000);  // [ms]
+  delay(000);  // [ms]
 }
