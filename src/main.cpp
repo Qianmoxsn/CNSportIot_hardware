@@ -16,6 +16,7 @@ String wifi_password;
 String ftp_server;
 String ftp_user;
 String ftp_pswd;
+uint32_t court_id;
 
 ESP32_FTPClient ftp((char*)ftp_server.c_str(), (char*)ftp_user.c_str(), (char*)ftp_pswd.c_str(), 10000, 2);
 
@@ -33,7 +34,7 @@ void setup() {
   Serial.printf("PSRAM free size: %.2f M\n", ESP.getFreePsram()/1024.0/1024.0);
   Serial.printf("FLASH size: %.2f M\n", ESP.getFlashChipSize()/1024.0/1024.0);
   Serial.println("=========================");
-  if (loadConfig(config_file, wifi_ssid, wifi_password, ftp_server, ftp_user, ftp_pswd)) {
+  if (loadConfig(config_file, wifi_ssid, wifi_password, ftp_server, ftp_user, ftp_pswd,&court_id)) {
     // setup wifi
     scanfWifi();
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
@@ -65,8 +66,7 @@ void loop() {
   while (!getLocalTime(&info)) {
     time_str = "FA:IL.xx";
   }
-  time_str = String(info.tm_hour) + ":" +String(info.tm_min) + "." + String(info.tm_sec);
-  String unix_time_str = String(info.tm_yday);
+  time_str = String(info.tm_mday)+":"+String(info.tm_mon)+":"+String(info.tm_year)+":"+String(info.tm_hour) + ":" +String(info.tm_min) + ":" + String(info.tm_sec);
   
 
   if (frame_buffer) {
@@ -74,9 +74,9 @@ void loop() {
     unsigned char* file_header = (unsigned char*)frame_buffer->buf;
     // FTP upload
     //random name img_xxxxx.jpg
-    String name = "img_" + unix_time_str +'_'+ time_str + ".jpg";
+    String name = "img_" + time_str +'_'+ time_str + ".jpg";
     ftp.OpenConnection();
-    ftp.ChangeWorkDir("1/1/");
+    ftp.ChangeWorkDir(("1/"+String(court_id)+"/").c_str());
     ftp.InitFile("Type I");
     ftp.NewFile(name.c_str());
     ftp.WriteData(file_header, frame_buffer->len);
