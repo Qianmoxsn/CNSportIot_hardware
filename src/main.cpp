@@ -90,5 +90,5 @@ void loop() {
 
   }
 
-  delay(000);  // [ms]
+  delay(60000);  // [ms]
 }
