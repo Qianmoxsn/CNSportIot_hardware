@@ -4,4 +4,4 @@
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
 
-bool loadConfig(String, String&, String&, String&, String&, String&,uint32_t*);
+bool loadConfig(String, String&, String&, String&, String&, String&, int&);

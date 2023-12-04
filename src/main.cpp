@@ -16,7 +16,7 @@ String wifi_password;
 String ftp_server;
 String ftp_user;
 String ftp_pswd;
-uint32_t court_id;
+int court_id;
 
 ESP32_FTPClient ftp((char*)ftp_server.c_str(), (char*)ftp_user.c_str(), (char*)ftp_pswd.c_str(), 10000, 2);
 
@@ -30,11 +30,11 @@ void setup() {
   Serial.begin(9600);
   Serial.printf("\nInfo ====================\n");
   Serial.printf("CPU freq: %d MHz\n", ESP.getCpuFreqMHz());
-  Serial.printf("RAM free size: %.2f M\n", ESP.getFreeHeap()/1024.0/1024.0);
+  Serial.printf("RAM free size: %.2f K\n", ESP.getFreeHeap()/1024.0);
   Serial.printf("PSRAM free size: %.2f M\n", ESP.getFreePsram()/1024.0/1024.0);
   Serial.printf("FLASH size: %.2f M\n", ESP.getFlashChipSize()/1024.0/1024.0);
   Serial.println("=========================");
-  if (loadConfig(config_file, wifi_ssid, wifi_password, ftp_server, ftp_user, ftp_pswd,&court_id)) {
+  if (loadConfig(config_file, wifi_ssid, wifi_password, ftp_server, ftp_user, ftp_pswd, court_id)) {
     // setup wifi
     scanfWifi();
     setupWifi(wifi_ssid.c_str(), wifi_password.c_str());
