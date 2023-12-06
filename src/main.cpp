@@ -62,11 +62,11 @@ void loop() {
   camera_fb_t* frame_buffer = esp_camera_fb_get();
   
   struct tm info;
-  String time_str = "ST:AR.Tx";
+  String time_str = "ST-AR-Tx";
   while (!getLocalTime(&info)) {
-    time_str = "FA:IL.xx";
+    time_str = "FA-IL-xx";
   }
-  time_str = String(info.tm_mday)+":"+String(info.tm_mon)+":"+String(info.tm_year)+":"+String(info.tm_hour) + ":" +String(info.tm_min) + ":" + String(info.tm_sec);
+  time_str = String(info.tm_yday)+"-"+String(info.tm_hour) + "." +String(info.tm_min) + "." + String(info.tm_sec);
   
 
   if (frame_buffer) {
@@ -74,7 +74,7 @@ void loop() {
     unsigned char* file_header = (unsigned char*)frame_buffer->buf;
     // FTP upload
     //random name img_xxxxx.jpg
-    String name = "img_" + time_str +'_'+ time_str + ".jpg";
+    String name = "img-" + time_str + ".jpg";
     ftp.OpenConnection();
     ftp.ChangeWorkDir(("1/"+String(court_id)+"/").c_str());
     ftp.InitFile("Type I");
